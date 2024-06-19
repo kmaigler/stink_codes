@@ -48,6 +48,7 @@ pivot_df['Normalized_virus'] = pivot_df[1]/pivot_df[2]
 
 #get the learning index from stink_learning_index_km.py ratio_df
 # Merge pivot_df with ratio_df based on 'Animal'
+#ratio_df = pd.read_pickle('18_06_2024_ratio_dataframe')
 merged_df = pd.merge(pivot_df, ratio_df[['Animal', 'Normalized_ratio']], on='Animal', how='left')
 # Update the 'Normalized' column in pivot_df with the 'Normalized_ratio' from ratio_df
 pivot_df['Learning_index'] = ratio_df['Normalized_ratio']
@@ -58,13 +59,13 @@ laser_df = pivot_df.loc[pivot_df["Condition"].isin(['E', 'U'])].reset_index()
 
 #plot scatter w regression
 fig, ax = plt.subplots(1, 2, sharey=True, sharex=True, figsize=(5,4), dpi=600)
-sns.regplot(x='Learning_index', y='Normalized_virus', data=laser_df, ax=ax[0], 
+sns.regplot(x='Normalized_virus', y='Learning_index', data=laser_df, ax=ax[0], 
             ci=68, scatter_kws={'s': 50, 'color': 'green'}, line_kws={'color': 'green'})
-ax[0].set(ylabel='Normalized Virus Expression', xlabel='Learning Index', title='Laser on')
+ax[0].set(ylabel='Learning Index', xlabel='Fluorescence Ratio', title='Laser on')
 # Plot scatter with regression for control_df
-sns.regplot(x='Learning_index', y='Normalized_virus', data=control_df, ax=ax[1],
+sns.regplot(x='Normalized_virus', y='Learning_index', data=control_df, ax=ax[1],
             ci=68, scatter_kws={'s': 50, 'color': 'grey'}, line_kws={'color': 'grey'})
-ax[1].set(ylabel='', xlabel='Learning Index', title='No laser control')
+ax[1].set(ylabel='', xlabel='Fluorescence Index', title='No laser control')
 # Set the main title
 fig.suptitle('Viral Expression Relationship to Learning Index')
 # Adjust layout for better fit

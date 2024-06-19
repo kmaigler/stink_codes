@@ -18,6 +18,7 @@ import pandas as pd
 #Import statistics packages
 import pingouin as pg
 from pingouin import pairwise_ttests
+from pingouin import mixed_anova
 import statsmodels.api as sm
 from scipy import stats
 
@@ -172,13 +173,13 @@ plt.tight_layout()
 #generate a dataframe for each condition
 licksum_df = dropna_df.groupby(['Animal','Condition','SOLUTION'])['LICKS'].sum().reset_index()
 #plot catplot
-fig, ax = plt.subplots(figsize = (5.5,7), dpi=600)
+fig, ax = plt.subplots(figsize = (4.5,7), dpi=600)
 sns.catplot(ax = ax, kind = 'bar', x='SOLUTION', y='LICKS',col='Condition',
                  data=licksum_df,palette = ['#0D275C','#7E9EE0'], #blues
                  ci=68, aspect = 0.5)
 
 #plot barplot w condition on x axis
-fig, ax = plt.subplots(figsize = (5.5,7), dpi=600)
+fig, ax = plt.subplots(figsize = (4.5,7), dpi=600)
 ax = sns.barplot(ax = ax, x='Condition', y='LICKS',hue='SOLUTION',
                  data=licksum_df,palette = ['#0D275C','#7E9EE0'], #blues
                  ci=68)
@@ -186,3 +187,64 @@ ax.set(ylabel = 'Licks Sum')
 ax.set(title = 'Total Licks to Odor Paired with Sucrose vs. Unpaired Odor \n on Conditioning Days')
 ax.set_xticklabels(['Exposed, GCx', 'Unexposed, GCx','Exposed, no laser',
                     'Unexposed, no laser'],fontsize = 7.5)
+
+
+anova_stat = pg.mixed_anova(dv='LICKS', subject = 'Animal', within= 'SOLUTION', between='Condition', data = licksum_df)
+# Out[86]: 
+#         Source            SS  DF1  DF2  ...          F     p-unc       np2  eps
+# 0    Condition  3.596311e+05    3    2  ...   3.476493  0.231375  0.839092  NaN
+# 1     SOLUTION  8.796668e+05    1    2  ...  64.612490  0.015127  0.969976  1.0
+# 2  Interaction  1.212160e+06    3    2  ...  29.678156  0.032773  0.978030  NaN
+
+#run ttest betwen paired and unpaired fo each group
+E_licksum = E_df.groupby(['Animal','Notes','SOLUTION'])['LICKS'].sum().reset_index()
+E_paired = E_licksum.loc[(E_licksum['SOLUTION']=='paired')]
+E_unp  = E_licksum.loc[(E_licksum['SOLUTION']=='unpaired')]
+Et, Ep = stats.ttest_ind(E_paired['LICKS'], E_unp['LICKS'])
+# Ep
+# Out[100]: 0.03779692114141821
+# Et
+# Out[101]: 3.056242697945442
+Ec_licksum = Ec_df.groupby(['Animal','Notes','SOLUTION'])['LICKS'].sum().reset_index()
+Ec_paired = Ec_licksum.loc[(Ec_licksum['SOLUTION']=='paired')]
+Ec_unp  = Ec_licksum.loc[(Ec_licksum['SOLUTION']=='unpaired')]
+Ect, Ecp = stats.ttest_ind(Ec_paired['LICKS'], Ec_unp['LICKS'])
+# Ect
+# Out[104]: 0.6760546654413127
+# Ecp
+# Out[105]: 0.5360782740721467
+U_licksum = U_df.groupby(['Animal','Notes','SOLUTION'])['LICKS'].sum().reset_index()
+U_paired = U_licksum.loc[(U_licksum['SOLUTION']=='paired')]
+U_unp  = U_licksum.loc[(U_licksum['SOLUTION']=='unpaired')]
+Ut, Up = stats.ttest_ind(U_paired['LICKS'], U_unp['LICKS'])
+# Ut
+# Out[113]: 2.293685236879882
+
+# Up
+# Out[114]: 0.035685615139133965
+Uc_licksum = Uc_df.groupby(['Animal','Notes','SOLUTION'])['LICKS'].sum().reset_index()
+Uc_paired = Uc_licksum.loc[(Uc_licksum['SOLUTION']=='paired')]
+Uc_unp  = Uc_licksum.loc[(Uc_licksum['SOLUTION']=='unpaired')]
+Uct, Ucp = stats.ttest_ind(Uc_paired['LICKS'], Uc_unp['LICKS'])
+# Ucp
+# Out[110]: 0.5507824650505682
+
+# Uct
+# Out[111]: -0.6506043692818709
+
+#===========================================================================
+#conditioning days barplot with only GCx groups
+# =============================================================================
+Gcx_df =  dropna_df.loc[dropna_df["Condition"].isin(["E", 'U'])]
+gcx_licksum_df = Gcx_df.groupby(['Animal','Condition','SOLUTION'])['LICKS'].sum().reset_index()
+
+#plot barplot w condition on x axis
+fig, ax = plt.subplots(figsize = (4.5,7), dpi=600)
+ax = sns.barplot(ax = ax, x='Condition', y='LICKS',hue='SOLUTION',
+                 data=gcx_licksum_df,palette = ['#0D275C','#7E9EE0'], #blues
+                 ci=68)
+ax.set(ylabel = 'Licks Sum')
+ax.set(ylim = [0,4250])
+ax.set(xlabel = '')
+ax.set(title = 'Total Licks to Odor Paired with Sucrose vs. Unpaired Odor \n on Conditioning Days')
+ax.set_xticklabels(['Pre-Exposed, GCx', 'Non-exposed, GCx'],fontsize = 9)
